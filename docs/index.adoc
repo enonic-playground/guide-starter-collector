@@ -333,10 +333,10 @@ This method:
 
 This method:
 
-* Stores a startTime timestamp used in duration calculation.
+* Stores a startTime timestamp used in duration calculations.
 * Reports an initial progress via lib-task.
 * Creates a new collection repo (if needed).
-* Persists information that the collector is running (so it can't be run twice, but can be stopped).
+* Persists information that the collector is running (so it can't be run twice in parallel, but can be stopped).
 * Sets up a journal to write state information to.
 
 ====== queryDocuments()
@@ -385,7 +385,7 @@ This method:
 
 * Persists the journal to the journal repo.
 * Sends emails if notifications are configured on the Explorer Admin GUI.
-* Persists information that the collector is failed or finished (so it can be started again).
+* Persists information that the collector has failed or finished (so it can be started again).
 
 
 === React form component(s)
@@ -410,7 +410,7 @@ This is a standard setState function returned by React.useState. Use it to chang
 
 ==== setCollectorConfigErrorCount
 
-This is a standard setState function returned by React.useState. Use it to allow or prevent form submission. 0 errors is required to allow form submission.
+This is a standard setState function returned by React.useState. Use it to allow or prevent form submission. 0 errors are required to allow form submission.
 
 ==== ref
 
