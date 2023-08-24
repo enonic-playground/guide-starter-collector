@@ -2,6 +2,7 @@
 :toc: right
 :enonicStart: https://developer.enonic.com/start
 :enonicTasks: https://developer.enonic.com/docs/xp/stable/framework/tasks
+:githubWebcrawl: https://github.com/enonic/app-explorer/blob/master/src/main/resources/tasks/webcrawl/webcrawl.ts
 
 This guide takes you through the steps of building a custom Collector for Explorer.
 
@@ -15,13 +16,83 @@ Task:: Code that performs the actual retrieval of content for indexing.
 
 This section will guide you through the basic steps of building your own custom collector.
 
+== Install CLI
+
+The Enonic Command Line Interface is an essential tool for developers working with Enonic.
+
+If you have `npm` on your device, run this command:
+
+  npm install -g @enonic/cli
+
+If not, here are some {enonicStart}[alternative ways to install Enonic CLI^]
+
+To verify that the CLI has been installed, run `enonic -v`. This should output the version of your installed CLI.
+
+To see all available options, simply run `enonic`.
+
+TIP: To upgrade, use `enonic latest`. If there are new versions you will see instructions on how to upgrade.
+
+== Create a Sandbox
+
+A sandbox is a local developer instance of our platform - Enonic XP. Create a sandbox by running this command in your terminal:
+
+  enonic sandbox create
+
+Give it a name, i.e. `intro`, and select the most recent version of Enonic XP from the list that appears.
+
+Start the sandbox with this command:
+
+  enonic sandbox start --dev
+
+Select the `intro` sandbox from the list, and it will boot up in development mode.
+
+TIP: Dev mode will automatically load changes in your code when developing.
+
 == Create project
 
 To set up a project locally, run the following command and complete the steps:
 
-  enonic project create -r starter-lib
+  enonic project create -r myproject
 
-NOTE: *Don't have Enonic CLI?* Visit the {enonicStart}[Getting started guide] to install it.
+=== Project structure
+
+The previous step created the folder `myproject`, you should now have an app structure, looking something like this:
+
+.Selected files from the app code:
+[source,files]
+----
+src/
+ main/
+  resources/
+   assets/
+     js/
+      react/
+       Collector.tsx <1>
+       useCollectorState.ts <2>
+   tasks/
+    collect/
+     collect.ts
+     collect.xml
+   collectors.json <3>
+   documentTypes.json <4>
+gradle.properties <5>
+webpack.config.babel.js <6>
+----
+
+<1> React component with the form elements
+<2> State code for the React component
+<3> Configuration for one or more collectors present in this application.
+<4> Configuration for one or more document-types present in this application.
+<5> App settings and name
+<6> Compilation settings
+
+== Selecting the project sandbox
+
+From the project folder created (i.e. `myproject/`), run this command:
+
+  enonic project sandbox
+
+This command produces a .enonic file, which tells the enonic command which sandbox to use.
 
 == Building the application
 
@@ -31,7 +102,7 @@ From the project folder created (i.e. `myproject/`), run this command:
 
 This command produces a .jar file in the folder `build/libs/` i.e. `build/libs/myproject.jar`
 
-== Deploying the application to a sandbox
+== Deploying the application to the sandbox
 
 From the project folder created (i.e. `myproject/`), run this command:
 
@@ -165,13 +236,15 @@ Those document-type names can then be used when persisting documents in you coll
 [source,typescript]
 ----
 collector.persistDocument(documentToPersist, {
-    documentTypeName: 'starter_explorer_collector_document_type'
+    documentTypeName: 'starter_explorer_collector_document_type_a'
 });
 ----
 
 === Developing the Task
 
 An example is provided in the starter.
+
+TIP: A more advanced "example" can be found {githubWebcrawl}[here].
 
 It uses the normal {enonicTasks}[task framework], but has some useful extensions.
 
@@ -210,7 +283,7 @@ The task descriptor xml must declare these properties:
 </task>
 ----
 
-The task controller typescript file can then pass these properties via the Collector class constructor:
+The task controller typescript file can then pass on these properties via the Collector class constructor:
 
 ./src/main/resources/tasks/collect/collect.ts
 [source,typescript]
@@ -228,3 +301,85 @@ export function run({
     });
 }
 ----
+
+==== The Collector Class
+
+The Collector class provides useful methods in order to:
+
+* Provide progress information to the Explorer Admin GUI App.
+* Persist documents.
+* Provide state information to build an Explorer Journal.
+
+===== Properties
+
+====== config
+
+Any configuration passed in via configJson is available as a javascript object via the config property.
+
+===== Methods
+
+====== constructor()
+
+This method:
+
+* Throws if any of the parameters are missing or invalid.
+* Gets information about Collection.
+* Parses the configJson and provides the result via the config property.
+
+====== start()
+
+This method:
+
+* Stores a startTime timestamp used in duration calculation.
+* Reports an initial progress via lib-task.
+* Creates a new collection repo (if needed).
+* Persists information that the collector is running (so it can't be run twice, but can be stopped).
+* Sets up a journal to write state information to.
+
+====== queryDocuments()
+
+This method makes is possible to query the exisiting documents in the collection.
+Useful to find the document id to modify an existing document, rather than creating a new one.
+
+====== persistDocument()
+
+This method will create or modify a document, based on its parameters.
+If can also extend a documentType and validate against it.
+
+====== deleteDocument()
+
+This method makes it possible to delete one or more documents from the collection.
+
+====== getDocumentNode()
+
+This method makes it possible to get one ore more documents from the collection.
+
+====== shouldStop()
+
+This method checks whether the STOP button has be clicked in the Explorer Admin GUI.
+
+Useful to finish gracefully, for instance by breaking loops.
+
+====== addSuccess()
+
+Adds a success to the journal.
+
+====== addInformation()
+
+Adds useful information to the journal.
+
+====== addWarning()
+
+Adds a warning to the journal.
+
+====== addError()
+
+Adds an error to the journal.
+
+====== stop()
+
+This method:
+
+* Persists the journal to the journal repo.
+* Sends emails if notifications are configured on the Explorer Admin GUI.
+* Persists information that the collector is failed or finished (so it can be started again).
