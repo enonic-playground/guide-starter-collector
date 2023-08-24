@@ -326,7 +326,7 @@ Any configuration passed in via configJson is available as a javascript object v
 This method:
 
 * Throws if any of the parameters are missing or invalid.
-* Gets information about Collection.
+* Gets information about the Collection.
 * Parses the configJson and provides the result via the config property.
 
 ====== start()
