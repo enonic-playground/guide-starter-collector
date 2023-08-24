@@ -249,7 +249,8 @@ TIP: A more advanced "example" can be found {githubWebcrawl}[here].
 
 It uses the normal {enonicTasks}[task framework], but has some useful extensions.
 
-The task recives the following properties, when called from the Explorer Admin GUI Application:
+The task receives the following properties, when called from the Explorer Admin GUI Application:
+
 * collectionId
 * collectorId
 * configJson
@@ -310,6 +311,7 @@ The Collector class provides useful methods in order to:
 * Provide progress information to the Explorer Admin GUI App.
 * Persist documents.
 * Provide state information to build an Explorer Journal.
+* Make it possible to get whether Explorer Admin wants the collector to stop "midstream" (before it's actually finished).
 
 ===== Properties
 
